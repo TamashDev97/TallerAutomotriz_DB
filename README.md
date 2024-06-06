@@ -53,7 +53,7 @@ Este sistema centralizará la información de clientes, vehículos, servicios, r
         ◦ FechaCambio: Fecha y hora del cambio.
         ◦ TipoAcción: Tipo de acción (por ejemplo, 'Actualizar', 'Eliminar').
    
-   Servicios
+    Servicios
     • Campos:
         ◦ ServicioID: Clave primaria, identificador único para cada servicio.
         ◦ Nombre: Nombre del servicio.
@@ -109,8 +109,7 @@ Este sistema centralizará la información de clientes, vehículos, servicios, r
         ◦ PiezaID: Clave foránea que referencia a Piezas (PiezaID).
         ◦ Cantidad: Cantidad de la pieza en inventario.
         ◦ Ubicación: Ubicación de la pieza en inventario.
-    
-    
+        
     Historial_Inventario
     • Campos:
         ◦ HistorialID: Clave primaria, identificador único para cada registro de historial de inventario.
@@ -223,8 +222,9 @@ Este sistema centralizará la información de clientes, vehículos, servicios, r
 • Facturación a Detalles_Factura: Uno a muchos (una factura puede tener múltiples detalles de factura).
 • Clientes a Retroalimentación: Uno a muchos (un cliente puede proporcionar múltiples retroalimentaciones).
 • Servicios a Retroalimentación: Uno a muchos (un servicio puede tener múltiples retroalimentaciones).
-## Consultas
 
+
+## Consultas
 -- 1. Obtener el historial de reparaciones de un vehículo específico
 SELECT r.Repair_Id, r.Vehicle_Id, r.Repair_Date, r.Total_Cost
 FROM Repairs r
