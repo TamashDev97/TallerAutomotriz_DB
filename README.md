@@ -11,7 +11,7 @@ Este sistema centralizará la información de clientes, vehículos, servicios, r
 
 ## Tablas y Relaciones
 
-Clientes
+    Clientes
     • Campos:
         ◦ ClienteID: Clave primaria, identificador único para cada cliente.
         ◦ Nombre: Nombre del cliente.
