@@ -1,314 +1,330 @@
--- 1. Obtener el historial de reparaciones de un vehículo específico
+--- Consultas y subconsultas ---
+-- 1. Get repair history for a specific vehicle
 SELECT
-    r.Repair_Id,
-    r.Vehicle_Id,
-    r.Repair_Date,
-    r.Total_Cost
+    r.repair_id,
+    r.vehicle_id,
+    r.repair_date,
+    r.repair_cost
 FROM
-    Repairs AS r
+    repairs AS r
 JOIN
-    Vehicles AS v ON r.Vehicle_Id = v.Vehicle_Id
+    vehicles AS v ON r.vehicle_id = v.vehicle_id
 WHERE
-    v.Vehicle_Id = @vehicleId;
-
--- 2. Calcular el costo total de todas las reparaciones realizadas por un empleado específico en un período de tiempo
+    v.vehicle_id = @vehicleId;
+   
+-- 2. Calculate total cost of repairs for an employee in a specific period
 SELECT
-    SUM(r.Total_Cost) AS Total_Cost
+    SUM(r.repair_cost) AS TotalCost
 FROM
-    Repairs AS r
+    repairs AS r
 JOIN
-    Employees AS e ON r.Employee_Id = e.Employee_Id
+    employees AS e ON r.employee_id = e.employee_id
 WHERE
-    e.Employee_Id = @employeeId AND
-    r.Repair_Date BETWEEN @startDate AND @endDate;
+    e.employee_id = @employeeId AND
+    r.repair_date BETWEEN @startDate AND @endDate;
 
--- 3. Listar todos los clientes y los vehículos que poseen
+-- 3. List all clients and their vehicles
 SELECT
-    c.Client_Id,
-    c.Name,
-    c.Last_Name,
-    v.Plate_Number,
-    v.Brand,
-    v.Model
+    c.client_id,
+    c.name,
+    c.last_name,
+    v.plate_number,
+    v.brand,
+    v.model
 FROM
-    Clients AS c
+    clients AS c
 JOIN
-    Vehicles AS v ON c.Client_Id = v.Client_Id;
+    vehicles AS v ON c.client_id = v.client_id;
 
--- 4. Obtener la cantidad de piezas en inventario para cada pieza
+-- 4. Get inventory quantity for each part
 SELECT
-    p.Part_Name,
-    i.Quantity
+    p.part_id,
+    p.part_name,
+    i.quantity
 FROM
-    Parts AS p
+    parts AS p
 JOIN
-    Inventories AS i ON p.Part_Id = i.Part_Id;
+    inventories AS i ON p.part_id = i.part_id;
 
--- 5. Obtener las citas programadas para un día específico
+-- 5. Get scheduled appointments for a specific date
 SELECT
-    a.Appointment_Id,
-    a.Date_Time,
-    a.Client_Id
+    a.appointment_id,
+    a.date_time,
+    a.client_id
 FROM
-    Appointments AS a
+    appointments AS a
 WHERE
-    a.Date_Time = @appointmentDate;
+    a.date_time = @appointmentDate;
 
--- 6. Generar una factura para un cliente específico en una fecha determinada
+-- 6. Generate an invoice for a client on a specific date
 SELECT
-    i.Invoice_Id,
-    i.Client_Id,
-    i.Invoice_Date,
-    i.Total_Cost
+    i.invoice_id,
+    i.client_id,
+    i.invoice_date,
+    i.total_cost
 FROM
-    Invoices AS i
+    invoices AS i
 WHERE
-    i.Client_Id = @clientId AND
-    i.Invoice_Date = @invoiceDate;
+    i.client_id = @clientId AND
+    i.invoice_date = @invoiceDate;
 
--- 7. Listar todas las órdenes de compra y sus detalles
+-- 7. List all purchase orders and their details
 SELECT
-    po.Order_Id,
-    po.Order_Date,
-    po.Total_Cost,
-    od.Part_Id,
-    od.Quantity,
-    od.Part_Price
+    po.order_id,
+    po.order_date,
+    po.total_cost,
+    od.part_id,
+    od.quantity,
+    od.part_price
 FROM
-    Purchase_Orders AS po
+    purchase_orders AS po
 JOIN
-    Order_Details AS od ON po.Order_Id = od.Order_Id;
+    order_details AS od ON po.order_id = od.order_id;
 
--- 8. Obtener el costo total de piezas utilizadas en una reparación específica
+-- 8. Get total cost of parts used in a specific repair
 SELECT
-    SUM(rp.Quantity * p.Part_Price) AS Total_Cost
+    SUM(rp.quantity * p.part_cost) AS TotalCost
 FROM
-    Repair_Parts AS rp
+    repair_parts AS rp
 JOIN
-    Parts AS p ON rp.Part_Id = p.Part_Id
+    parts AS p ON rp.part_id = p.part_id
 WHERE
-    rp.Repair_Id = @repairId;
+    rp.repair_id = @repairId;
 
--- 9. Obtener el inventario de piezas que necesitan ser reabastecidas (cantidad menor que un umbral)
+-- 9. Get inventory of parts that need to be restocked
 SELECT
-    p.Part_Name,
-    i.Quantity
+    p.part_id,
+    p.part_name,
+    i.quantity
 FROM
-    Parts AS p
+    parts AS p
 JOIN
-    Inventories AS i ON p.Part_Id = i.Part_Id
+    inventories AS i ON p.part_id = i.part_id
 WHERE
-    i.Quantity < @threshold;
+    i.quantity < @threshold;
 
--- 10. Obtener el listado de servicios más solicitados en un período específico
+-- 10. Get list of most requested services in a specific period
 SELECT
-    s.Service_Name,
-    COUNT(rs.Repair_Id) AS Count
+    s.service_id,
+    s.service_name,
+    COUNT(rs.repair_id) AS Count
 FROM
-    Services AS s
+    services AS s
 JOIN
-    Repair_Services AS rs ON s.Service_Id = rs.Service_Id
+    repair_services AS rs ON s.service_id = rs.service_id
 WHERE
-    rs.Repair_Date BETWEEN @startDate AND @endDate
+    rs.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
-    s.Service_Name
+    s.service_id,
+    s.service_name
 ORDER BY
     Count DESC;
 
--- 11. Obtener el costo total de reparaciones para cada cliente en un período específico
+-- 11. Get total cost of repairs for each client in a specific period
 SELECT
-    c.Client_Id,
-    SUM(r.Total_Cost) AS Total_Cost
+    c.client_id,
+    SUM(r.repair_cost) AS TotalCost
 FROM
-    Clients AS c
+    clients AS c
 JOIN
-    Repairs AS r ON c.Client_Id = r.Client_Id
+    repairs AS r ON c.client_id = r.client_id
 WHERE
-    r.Repair_Date BETWEEN @startDate AND @endDate
+    r.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
-    c.Client_Id;
+    c.client_id;
 
--- 12. Listar los empleados con mayor cantidad de reparaciones realizadas en un período específico
+-- 12. List employees with the most repairs in a specific period
 SELECT
-    e.Employee_Id,
-    COUNT(r.Repair_Id) AS Count
+    e.employee_id,
+    COUNT(r.repair_id) AS Count
 FROM
-    Employees AS e
+    employees AS e
 JOIN
-    Repairs AS r ON e.Employee_Id = r.Employee_Id
+    repairs AS r ON e.employee_id = r.employee_id
 WHERE
-    r.Repair_Date BETWEEN @startDate AND @endDate
+    r.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
-    e.Employee_Id
+    e.employee_id
 ORDER BY
     Count DESC;
 
--- 13. Obtener las piezas más utilizadas en reparaciones durante un período específico
+-- 13. Get most used parts in repairs during a specific period
 SELECT
-    p.Part_Name,
-    COUNT(rp.Part_Id) AS Count
+    p.part_id,
+    p.part_name,
+    COUNT(rp.part_id) AS Count
 FROM
-    Parts AS p
+    parts AS p
 JOIN
-    Repair_Parts AS rp ON p.Part_Id = rp.Part_Id
+    repair_parts AS rp ON p.part_id = rp.part_id
 WHERE
-    rp.Repair_Date BETWEEN @startDate AND @endDate
+    rp.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
-    p.Part_Name
+    p.part_id,
+    p.part_name
 ORDER BY
     Count DESC;
 
--- 14. Calcular el promedio de costo de reparaciones por vehículo
+-- 14. Calculate average cost of repairs per vehicle
 SELECT
-    AVG(r.Total_Cost) AS Average_Cost
+    AVG(r.repair_cost) AS AverageCost
 FROM
-    Repairs AS r;
+    repairs AS r;
 
--- 15. Obtener el inventario de piezas por proveedor
+-- 15. Get inventory of parts by supplier
 SELECT
-    s.Supplier_Name,
-    p.Part_Name,
-    i.Quantity
+    s.supplier_id,
+    s.supplier_name,
+    p.part_id,
+    p.part_name,
+    i.quantity
 FROM
-    Suppliers AS s
+    suppliers AS s
 JOIN
-    Supplier_Parts AS sp ON s.Supplier_Id = sp.Supplier_Id
+    supplier_parts AS sp ON s.supplier_id = sp.supplier_id
 JOIN
-    Parts AS p ON sp.Part_Id = p.Part_Id
+    parts AS p ON sp.part_id = p.part_id
 JOIN
-    Inventories AS i ON p.Part_Id = i.Part_Id;
+    inventories AS i ON p.part_id = i.part_id;
 
--- 16. Listar los clientes que no han realizado reparaciones en el último año
+-- 16. List clients who haven't had repairs in the last year
 SELECT
-    c.Client_Id,
-    c.Name,
-    c.Last_Name
+    c.client_id,
+    c.name,
+    c.last_name
 FROM
-    Clients AS c
+    clients AS c
 LEFT JOIN
-    Repairs AS r ON c.Client_Id = r.Client_Id
+    repairsAS r ON c.client_id = r.client_id
 WHERE
-    r.Repair_Date IS NULL OR
-    r.Repair_Date < DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
+    r.repair_date IS NULL OR
+    r.repair_date < DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
 
--- 17. Obtener las ganancias totales del taller en un período específico
+-- 17. Get total gain of the workshop in a specific period
 SELECT
-    SUM(i.Total_Cost) AS Total_Gain
+    SUM(i.total_cost) AS TotalGain
 FROM
-    Invoices AS i
+    invoices AS i
 WHERE
-    i.Invoice_Date BETWEEN @startDate AND @endDate;
+    i.invoice_date BETWEEN @startDate AND @endDate;
 
--- 18. Listar los empleados y el total de horas trabajadas en reparaciones en un período específico
+-- 18. List employees and total hours worked in repairs in a specific period
 SELECT
-    e.Employee_Id,
-    SUM(r.Repair_Time) AS Total_Hours
+    e.employee_id,
+    SUM(r.repair_time) AS TotalHours
 FROM
-    Employees AS e
+    employees AS e
 JOIN
-    Repairs AS r ON e.Employee_Id = r.Employee_Id
+    repairs AS r ON e.employee_id = r.employee_id
 WHERE
-    r.Repair_Date BETWEEN @startDate AND @endDate
+    r.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
-    e.Employee_Id;
+    e.employee_id;
 
--- 19. Obtener el listado de servicios prestados por cada empleado en un período específico
+-- 19. Get list of services provided by each employee in a specific period
 SELECT
-    e.Employee_Id,
-    s.Service_Name,
-    COUNT(rs.Repair_Id) AS Count
+    e.employee_id,
+    s.service_id,
+    s.service_name,
+    COUNT(rs.repair_id) AS Count
 FROM
-    Employees AS e
+    employees AS e
 JOIN
-    Repairs AS r ON e.Employee_Id = r.Employee_Id
+    repairs AS r ON e.employee_id = r.employee_id
 JOIN
-    Repair_Services AS rs ON r.Repair_Id = rs.Repair_Id
+    repair_services AS rs ON r.repair_id = rs.repair_id
 JOIN
-    Services AS s ON rs.Service_Id = s.Service_Id
+    services AS s ON rs.service_id = s.service_id
 WHERE
-    r.Repair_Date BETWEEN @startDate AND @endDate
+    r.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
-    e.Employee_Id,
-    s.Service_Name
+    e.employee_id,
+    s.service_id,
+    s.service_name
 ORDER BY
     Count DESC;
 
 --- Subqueries ---
 
--- 1. Obtener el cliente que ha gastado más en reparaciones durante el último año
+-- 1. Get the client who has spent the most on repairs during the last year
 SELECT
-    c.Client_Id,
-    c.Name,
-    c.Last_Name,
-    SUM(r.Total_Cost) AS Total_Spent
+    c.client_id,
+    c.name,
+    c.last_name,
+    SUM(r.repair_cost) AS TotalSpent
 FROM
-    Clients AS c
+    clients AS c
 JOIN
-    Repairs AS r ON c.Client_Id = r.Client_Id
+    repairs AS r ON c.client_id = r.client_id
 WHERE
-    r.Repair_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+    r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
 GROUP BY
-    c.Client_Id,
-    c.Name,
-    c.Last_Name
+    c.client_id,
+    c.name,
+    c.last_name
 ORDER BY
-    Total_Spent DESC
+    TotalSpent DESC
 LIMIT 1;
 
--- 2. Obtener la pieza más utilizada en reparaciones durante el último mes
+-- 2. Get the most used part in repairs during the last month
 SELECT
-    p.Part_Name,
-    COUNT(rp.Part_Id) AS Count
+    p.part_id,
+    p.part_name,
+    COUNT(rp.part_id) AS Count
 FROM
-    Parts AS p
+    parts AS p
 JOIN
-    Repair_Parts AS rp ON p.Part_Id = rp.Part_Id
+    repair_parts AS rp ON p.part_id = rp.part_id
 JOIN
-    Repairs AS r ON rp.Repair_Id = r.Repair_Id
+    repairs AS r ON rp.repair_id = r.repair_id
 WHERE
-    r.Repair_Date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+    r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
 GROUP BY
-    p.Part_Name
+    p.part_id,
+    p.part_name
 ORDER BY
     Count DESC
 LIMIT 1;
 
--- 3. Obtener los proveedores que suministran las piezas más caras
+-- 3. Get the suppliers who supply the most expensive parts
 SELECT
-    s.Supplier_Name,
-    p.Part_Name,
-    p.Part_Price
+    s.supplier_id,
+    s.supplier_name,
+    p.part_id,
+    p.part_name,
+    p.part_cost
 FROM
-    Suppliers AS s
+    suppliers AS s
 JOIN
-    Supplier_Parts AS sp ON s.Supplier_Id = sp.Supplier_Id
+    supplier_parts AS sp ON s.supplier_id = sp.supplier_id
 JOIN
-    Parts AS p ON sp.Part_Id = p.Part_Id
+    parts AS p ON sp.part_id = p.part_id
 ORDER BY
-    p.Part_Price DESC;
+    p.part_cost DESC;
 
--- 4. Listar las reparaciones que no utilizaron piezas específicas durante el último año
+-- 4. List repairs that did not use specific parts during the last year
 SELECT
-    r.Repair_Id,
-    r.Vehicle_Id,
-    r.Repair_Date,
-    r.Total_Cost
+    r.repair_id,
+    r.vehicle_id,
+    r.repair_date,
+    r.repair_cost
 FROM
-    Repairs AS r
+    repairs AS r
 LEFT JOIN
-    Repair_Parts AS rp ON r.Repair_Id = rp.Repair_Id
+    repair_parts AS rp ON r.repair_id = rp.repair_id
 WHERE
-    rp.Part_Id IS NULL AND
-    r.Repair_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
+    rp.part_id IS NULL AND
+    r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
 
--- 5. Obtener las piezas que están en inventario por debajo del 10% del stock inicial
+-- 5. Get parts that are in inventory below 10% of the initial stock
 SELECT
-    p.Part_Name,
-    i.Quantity,
-    p.Initial_Stock
+    p.part_id,
+    p.part_name,
+    i.quantity,
+    p.initial_stock
 FROM
-    Parts AS p
+    parts AS p
 JOIN
-    Inventories AS i ON p.Part_Id = i.Part_Id
+    inventories AS i ON p.part_id = i.part_id
 WHERE
-    i.Quantity <= p.Initial_Stock * 0.1;
+    i.quantity <= p.initial_stock * 0.1;
