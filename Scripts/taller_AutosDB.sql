@@ -243,6 +243,7 @@ CREATE TABLE invoice_details (
   INDEX idx_invoice_details_repair_id (repair_id)
 ) COMMENT='Stores invoice details';
 
+
 -- Stored Procedures --
 /*1. Create a stored procedure to insert a new repair.*/
 DELIMITER //
