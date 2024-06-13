@@ -243,8 +243,8 @@ CREATE TABLE invoice_details (
   INDEX idx_invoice_details_repair_id (repair_id)
 ) COMMENT='Stores invoice details';
 
---- PRODECIMIENTOS ALMACENADOS ---
-/*1. Crear un procedimiento almacenado para insertar una nueva reparación.*/
+-- Stored Procedures --
+/*1. Create a stored procedure to insert a new repair.*/
 DELIMITER //
 CREATE PROCEDURE sp_insertar_reparacion(
   IN p_vehicle_id VARCHAR(255),
@@ -254,36 +254,66 @@ CREATE PROCEDURE sp_insertar_reparacion(
   IN p_total_cost DECIMAL
 )
 BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SELECT 'Error inserting repair: ' AS Error_Message;
+  END;
+  
+  START TRANSACTION;
+  
   INSERT INTO Repairs (Vehicle_Id, Employee_Id, Service_Id, Repair_Description, Total_Cost)
   VALUES (p_vehicle_id, p_employee_id, p_service_id, p_repair_description, p_total_cost);
+  
+  COMMIT;
 END//
 DELIMITER ;
 
-/*2. Crear un procedimiento almacenado para actualizar el inventario de una pieza.*/
+/*2. Create a stored procedure to update the inventory of a part.*/
 DELIMITER //
 CREATE PROCEDURE sp_actualizar_inventario(
   IN p_part_id VARCHAR(255),
   IN p_quantity INT
 )
 BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SELECT 'Error updating inventory: ' AS Error_Message;
+  END;
+  
+  START TRANSACTION;
+  
   UPDATE Inventory
   SET quantity = quantity - p_quantity
   WHERE part_id = p_part_id;
+  
+  COMMIT;
 END//
 DELIMITER ;
 
-/*3. Crear un procedimiento almacenado para eliminar una cita*/
+/*3. Create a stored procedure to delete an appointment.*/
 DELIMITER //
 CREATE PROCEDURE sp_eliminar_cita(
   IN p_appointment_id VARCHAR(255)
 )
 BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SELECT 'Error deleting appointment: ' AS Error_Message;
+  END;
+  
+  START TRANSACTION;
+  
   DELETE FROM Appointments
   WHERE Appointment_Id = p_appointment_id;
+  
+  COMMIT;
 END//
 DELIMITER ;
 
-/*4. Crear un procedimiento almacenado para generar una factura*/
+/*4. Create a stored procedure to generate an invoice.*/
 DELIMITER //
 CREATE PROCEDURE sp_generar_factura(
   IN p_client_id VARCHAR(255),
@@ -291,6 +321,13 @@ CREATE PROCEDURE sp_generar_factura(
 )
 BEGIN
   DECLARE invoice_id INT;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SELECT 'Error generating invoice: ' AS Error_Message;
+  END;
+  
+  START TRANSACTION;
   
   INSERT INTO Invoices (Client_Id, Total_Cost)
   VALUES (p_client_id, p_total_cost);
@@ -301,10 +338,12 @@ BEGIN
   SELECT invoice_id, r.Repair_Id, r.Quantity, r.Part_Price
   FROM Repairs r
   WHERE r.Client_Id = p_client_id;
+  
+  COMMIT;
 END//
 DELIMITER ;
 
-/*5. Crear un procedimiento almacenado para obtener el historial de reparaciones de un vehículo*/
+/*5. Create a stored procedure to retrieve the repair history of a vehicle.*/
 DELIMITER //
 CREATE PROCEDURE sp_obtener_historial_reparaciones(
   IN p_vehicle_id VARCHAR(255)
@@ -324,7 +363,7 @@ BEGIN
 END//
 DELIMITER ;
 
-/*6. Crear un procedimiento almacenado para calcular el costo total de reparaciones de un cliente en un período*/
+/*6. Create a stored procedure to calculate the total cost of repairs for a client within a specified date range.*/
 DELIMITER //
 CREATE PROCEDURE sp_calcular_costo_total_reparaciones(
   IN p_client_id VARCHAR(255),
@@ -339,7 +378,7 @@ BEGIN
 END//
 DELIMITER ;
 
-/*7. Crear un procedimiento almacenado para obtener la lista de vehículos que requieren mantenimiento basado en el kilometraje.*/
+/*7. Create a stored procedure to retrieve the list of vehicles that require maintenance based on their kilometrage.*/
 DELIMITER //
 CREATE PROCEDURE sp_obtener_vehiculos_mantenimiento(
   IN p_kilometrage INT
@@ -357,7 +396,7 @@ BEGIN
 END//
 DELIMITER ;
 
-/*8. Crear un procedimiento almacenado para insertar una nueva orden de compra*/
+/*8. Create a stored procedure to insert a new purchase order.*/
 DELIMITER //
 CREATE PROCEDURE sp_insertar_orden_compra(
   IN p_supplier_id VARCHAR(255),
@@ -365,12 +404,22 @@ CREATE PROCEDURE sp_insertar_orden_compra(
   IN p_total_cost DECIMAL
 )
 BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SELECT 'Error inserting purchase order: ' AS Error_Message;
+ END;
+  
+  START TRANSACTION;
+  
   INSERT INTO Purchase_Orders (Supplier_Id, Employee_Id, Total_Cost)
   VALUES (p_supplier_id, p_employee_id, p_total_cost);
+  
+  COMMIT;
 END//
 DELIMITER ;
 
-/*9. Crear un procedimiento almacenado para actualizar los datos de un cliente*/
+/*9. Create a stored procedure to update a client's information.*/
 DELIMITER //
 CREATE PROCEDURE sp_actualizar_cliente(
   IN p_client_id VARCHAR(255),
@@ -381,18 +430,28 @@ CREATE PROCEDURE sp_actualizar_cliente(
   IN p_email VARCHAR(255)
 )
 BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SELECT 'Error updating client: ' AS Error_Message;
+  END;
+  
+  START TRANSACTION;
+  
   UPDATE Clients
   SET 
     Name = p_name,
     Last_Name = p_last_name,
-   Address = p_address,
+    Address = p_address,
     Phone = p_phone,
     Email = p_email
   WHERE Client_Id = p_client_id;
+  
+  COMMIT;
 END//
 DELIMITER ;
 
-/*10. Crear un procedimiento almacenado para obtener los servicios más solicitados en un período*/
+/*10. Create a stored procedure to retrieve the most requested services within a specified date range.*/
 DELIMITER //
 CREATE PROCEDURE sp_obtener_servicios_mas_solicitados(
   IN p_start_date DATE,
@@ -401,11 +460,11 @@ CREATE PROCEDURE sp_obtener_servicios_mas_solicitados(
 BEGIN
   SELECT 
     s.Service_Name,
-    COUNT(r.Service_Id) AS Cantidad
+    COUNT(r.Service_Id) AS Quantity
   FROM Services s
   JOIN Repairs r ON s.Service_Id = r.Service_Id
   WHERE r.Repair_Date BETWEEN p_start_date AND p_end_date
   GROUP BY s.Service_Name
-  ORDER BY Cantidad DESC;
+  ORDER BY Quantity DESC;
 END//
 DELIMITER ;
