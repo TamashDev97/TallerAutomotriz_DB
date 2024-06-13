@@ -5,18 +5,15 @@ CREATE DATABASE tallerauto_DB;
 USE tallerauto_DB;
 
 -- Create tables with indexing and constraints
-CREATE TABLE clients (
-  client_id INT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  last_name VARCHAR(255) NOT NULL,
-  address VARCHAR(255),
-  phone VARCHAR(10),
-  email VARCHAR(255),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_client_name (name),
-  INDEX idx_client_last_name (last_name)
-) COMMENT='Stores client information';
+
+--- clients ---
+INSERT INTO clients (client_id, name, last_name, address, phone, email) 
+VALUES 
+(1, 'John', 'Doe', '123 Main St', '5551234567', 'john.doe@example.com'),
+(2, 'Jane', 'Smith', '456 Elm St', '5559876543', 'jane.smith@example.com'),
+(3, 'Bob', 'Johnson', '789 Oak St', '5555551234', 'bob.johnson@example.com'),
+(4, 'Alice', 'Williams', '321 Pine St', '5555555555', 'alice.williams@example.com'),
+(5, 'Mike', 'Davis', '901 Maple St', '5555551234', 'ike.davis@example.com');
 
 CREATE TABLE client_history (
   history_id INT PRIMARY KEY,
@@ -156,6 +153,7 @@ CREATE TABLE suppliers (
   address VARCHAR(255),
   phone VARCHAR(10),
   email VARCHAR(255),
+  contact_person VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_suppliers_supplier_name (supplier_name)
@@ -189,6 +187,7 @@ CREATE TABLE repair_parts (
   repair_id INT NOT NULL,
   part_id INT NOT NULL,
   quantity INT NOT NULL,
+  part_price DECIMAL(10, 2) NOT NULL,
   PRIMARY KEY (repair_id, part_id),
   FOREIGN KEY (repair_id) REFERENCES repairs(repair_id),
   FOREIGN KEY (part_id) REFERENCES parts(part_id),
@@ -213,6 +212,7 @@ CREATE TABLE supplier_parts (
   supplier_part_id INT PRIMARY KEY,
   supplier_id INT,
   part_id INT,
+  part_price DECIMAL(10, 2) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id),
