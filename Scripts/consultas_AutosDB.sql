@@ -1,5 +1,4 @@
---- Consultas y subconsultas ---
--- 1. Get repair history for a specific vehicle
+-- Consult 1: Get repair history for a specific vehicle
 SELECT
     r.repair_id,
     r.vehicle_id,
@@ -11,8 +10,8 @@ JOIN
     vehicles AS v ON r.vehicle_id = v.vehicle_id
 WHERE
     v.vehicle_id = @vehicleId;
-   
--- 2. Calculate total cost of repairs for an employee in a specific period
+
+-- Consult 2: Calculate total cost of repairs for an employee in a specific period
 SELECT
     SUM(r.repair_cost) AS TotalCost
 FROM
@@ -23,7 +22,7 @@ WHERE
     e.employee_id = @employeeId AND
     r.repair_date BETWEEN @startDate AND @endDate;
 
--- 3. List all clients and their vehicles
+-- Consult 3: List all clients and their vehicles
 SELECT
     c.client_id,
     c.name,
@@ -36,7 +35,7 @@ FROM
 JOIN
     vehicles AS v ON c.client_id = v.client_id;
 
--- 4. Get inventory quantity for each part
+-- Consult 4: Get inventory quantity for each part
 SELECT
     p.part_id,
     p.part_name,
@@ -46,7 +45,7 @@ FROM
 JOIN
     inventories AS i ON p.part_id = i.part_id;
 
--- 5. Get scheduled appointments for a specific date
+-- Consult 5: Get scheduled appointments for a specific date
 SELECT
     a.appointment_id,
     a.date_time,
@@ -56,7 +55,7 @@ FROM
 WHERE
     a.date_time = @appointmentDate;
 
--- 6. Generate an invoice for a client on a specific date
+-- Consult 6: Generate an invoice for a client on a specific date
 SELECT
     i.invoice_id,
     i.client_id,
@@ -68,7 +67,7 @@ WHERE
     i.client_id = @clientId AND
     i.invoice_date = @invoiceDate;
 
--- 7. List all purchase orders and their details
+-- Consult 7: List all purchase orders and their details
 SELECT
     po.order_id,
     po.order_date,
@@ -81,7 +80,7 @@ FROM
 JOIN
     order_details AS od ON po.order_id = od.order_id;
 
--- 8. Get total cost of parts used in a specific repair
+-- Consult 8: Get total cost of parts used in a specific repair
 SELECT
     SUM(rp.quantity * p.part_cost) AS TotalCost
 FROM
@@ -91,7 +90,7 @@ JOIN
 WHERE
     rp.repair_id = @repairId;
 
--- 9. Get inventory of parts that need to be restocked
+-- Consult 9: Get inventory of parts that need to be restocked
 SELECT
     p.part_id,
     p.part_name,
@@ -103,7 +102,7 @@ JOIN
 WHERE
     i.quantity < @threshold;
 
--- 10. Get list of most requested services in a specific period
+-- Consult 10: Get list of most requested services in a specific period
 SELECT
     s.service_id,
     s.service_name,
@@ -117,10 +116,12 @@ WHERE
 GROUP BY
     s.service_id,
     s.service_name
+HAVING
+    COUNT(rs.repair_id) > 0
 ORDER BY
     Count DESC;
 
--- 11. Get total cost of repairs for each client in a specific period
+-- Consult 11: Get total cost of repairs for each client in a specific period
 SELECT
     c.client_id,
     SUM(r.repair_cost) AS TotalCost
@@ -131,9 +132,11 @@ JOIN
 WHERE
     r.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
-    c.client_id;
+    c.client_id
+HAVING
+    SUM(r.repair_cost) > 0;
 
--- 12. List employees with the most repairs in a specific period
+-- Consult 12: List employees with the most repairs in a specific period
 SELECT
     e.employee_id,
     COUNT(r.repair_id) AS Count
@@ -145,10 +148,12 @@ WHERE
     r.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
     e.employee_id
+HAVING
+    COUNT(r.repair_id) > 0
 ORDER BY
     Count DESC;
 
--- 13. Get most used parts in repairs during a specific period
+-- Consult 13: Get most used parts in repairs during a specific period
 SELECT
     p.part_id,
     p.part_name,
@@ -157,37 +162,31 @@ FROM
     parts AS p
 JOIN
     repair_parts AS rp ON p.part_id = rp.part_id
+JOIN
+    repairs AS r ON rp.repair_id = r.repair_id
 WHERE
-    rp.repair_date BETWEEN @startDate AND @endDate
+    r.repair_date BETWEEN @startDate AND @endDate
 GROUP BY
     p.part_id,
     p.part_name
+HAVING
+    COUNT(rp.part_id) > 0
 ORDER BY
     Count DESC;
 
--- 14. Calculate average cost of repairs per vehicle
-SELECT
-    AVG(r.repair_cost) AS AverageCost
+-- Consult 14: Get vehicles with no repairsSELECT
+    v.vehicle_id,
+    v.plate_number,
+    v.brand,
+    v.model
 FROM
-    repairs AS r;
+    vehicles AS v
+LEFT JOIN
+    repairs AS r ON v.vehicle_id = r.vehicle_id
+WHERE
+    r.repair_id IS NULL;
 
--- 15. Get inventory of parts by supplier
-SELECT
-    s.supplier_id,
-    s.supplier_name,
-    p.part_id,
-    p.part_name,
-    i.quantity
-FROM
-    suppliers AS s
-JOIN
-    supplier_parts AS sp ON s.supplier_id = sp.supplier_id
-JOIN
-    parts AS p ON sp.part_id = p.part_id
-JOIN
-    inventories AS i ON p.part_id = i.part_id;
-
--- 16. List clients who haven't had repairs in the last year
+-- Consult 15: Get clients with no repairs in the last year
 SELECT
     c.client_id,
     c.name,
@@ -195,10 +194,25 @@ SELECT
 FROM
     clients AS c
 LEFT JOIN
-    repairsAS r ON c.client_id = r.client_id
+    repairs AS r ON c.client_id = r.client_id
 WHERE
-    r.repair_date IS NULL OR
-    r.repair_date < DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
+    r.repair_date < DATE_SUB(CURRENT_DATE, INTERVAL 1 YEAR) OR
+    r.repair_id IS NULL;
+
+-- Consult 16: Get total cost of repairs for each client in the last year
+SELECT
+    c.client_id,
+    SUM(r.repair_cost) AS TotalCost
+FROM
+    clients AS c
+JOIN
+    repairs AS r ON c.client_id = r.client_id
+WHERE
+    r.repair_date >= DATE_SUB(CURRENT_DATE, INTERVAL 1 YEAR)
+GROUP BY
+    c.client_id
+HAVING
+    SUM(r.repair_cost) > 0;
 
 -- 17. Get total gain of the workshop in a specific period
 SELECT
