@@ -1,6 +1,5 @@
 --- INSERCIONES DE LAS TABLAS ---
-
---- clients ---
+-- Clients --
 INSERT INTO clients (client_id, name, last_name, address, phone, email) 
 VALUES 
 (1, 'John', 'Doe', '123 Main St', '5551234567', 'john.doe@example.com'),
@@ -140,63 +139,63 @@ VALUES
 (4, 4, 4, 125, 'Warehouse D', NOW(), NOW()),
 (5, 5, 5, 150, 'Warehouse E', NOW(), NOW());
 
---- employes
-INSERT INTO employees (employee_id, employee_name, last_name, address, phone, email)
-VALUES
+--- employees ---
+INSERT INTO employees (employee_id, employee_name, last_name, address, phone, email) 
+VALUES 
 (1, 'John', 'Doe', '123 Main St', '5551234567', 'john.doe@example.com'),
 (2, 'Jane', 'Smith', '456 Elm St', '5559876543', 'jane.smith@example.com'),
 (3, 'Bob', 'Johnson', '789 Oak St', '5555551234', 'bob.johnson@example.com'),
 (4, 'Alice', 'Williams', '321 Pine St', '5555555555', 'alice.williams@example.com'),
 (5, 'Mike', 'Davis', '901 Maple St', '5555551234', 'ike.davis@example.com');
 
---- purchase orders
-INSERT INTO purchase_orders (order_id, order_date, supplier_id, employee_id, total_cost)
-VALUES
-(1, '2022-01-01', 1, 1, 100.00),
-(2, '2022-01-05', 2, 2, 200.00),
-(3, '2022-01-10', 3, 3, 300.00),
-(4, '2022-01-15', 4, 4, 400.00),
-(5, '2022-01-20', 5, 5, 500.00);
+--- purchase_orders ---
+INSERT INTO purchase_orders (order_id, order_date, supplier_id, employee_id, total_cost) 
+VALUES 
+(1, DATE '2022-01-01', 1, 1, 100.00),
+(2, DATE '2022-01-05', 2, 2, 200.00),
+(3, DATE '2022-01-10', 3, 3, 300.00),
+(4, DATE '2022-01-15', 4, 4, 400.00),
+(5, DATE '2022-01-20', 5, 5, 500.00);
 
---- order details
-INSERT INTO order_details (order_id, part_id, quantity, part_price)
-VALUES
+--- order_details ---
+INSERT INTO order_details (order_id, part_id, quantity, unit_price) 
+VALUES 
 (1, 1, 10, 10.00),
-(1, 2, 20, 20.00),
-(2, 3, 30, 30.00),
-(3, 4, 40, 40.00),
-(4, 5, 50, 50.00);
+(2, 2, 20, 20.00),
+(3, 3, 30, 30.00),
+(4, 4, 40, 40.00),
+(5, 5, 50, 50.00);
 
---- repair parts
-INSERT INTO invoices (invoice_id, client_id, total_cost)
-VALUES
+--- repairs ---
+INSERT INTO repairs (repair_id, vehicle_id, service_id, employee_id, repair_date, repair_time, repair_cost) 
+VALUES 
+(1, 1, 1, 1, DATE '2022-01-01', TIME '10:00:00', 100.00),
+(2, 2, 2, 2, DATE '2022-01-05', TIME '14:00:00', 200.00),
+(3, 3, 3, 3, DATE '2022-01-10', TIME '08:00:00', 50.00),
+(4, 1, 1, 2, DATE '2022-01-15', TIME '12:00:00', 150.00),
+(5, 4, 4, 1, DATE '2022-01-20', TIME '16:00:00', 300.00);
+
+--- repair_parts ---
+INSERT INTO repair_parts (repair_id, part_id, quantity, part_price) 
+VALUES 
+(1, 1, 1, 100.00),
+(2, 2, 2, 200.00),
+(3, 3, 3, 300.00),
+(4, 4, 4, 400.00),
+(5, 5, 5, 500.00);
+
+--- invoices ---
+INSERT INTO invoices (invoice_id, client_id, total_cost) 
+VALUES 
 (1, 1, 100.00),
 (2, 2, 200.00),
 (3, 3, 300.00),
 (4, 4, 400.00),
 (5, 5, 500.00);
 
---- invoices
-INSERT INTO invoices (invoice_id, client_id, total_cost)
-VALUES
-(1, 1, 100.00),
-(2, 2, 200.00),
-(3, 3, 300.00),
-(4, 4, 400.00),
-(5, 5, 500.00);
-
---- repairs
-INSERT INTO repairs (repair_id, vehicle_id, service_id, employee_id, repair_date, repair_time, repair_cost)
-VALUES
-(1, 1, 1, 1, '2022-01-01', '10:00:00', 100.00),
-(2, 2, 2, 2, '2022-01-05', '14:00:00', 200.00),
-(3, 3, 3, 3, '2022-01-10', '08:00:00', 50.00),
-(4, 1, 1, 2, '2022-01-15', '12:00:00', 150.00),
-(5, 4, 4, 1, '2022-01-20', '16:00:00', 300.00);
-
---- invoice_details
-INSERT INTO invoice_details (invoice_id, repair_id, quantity, part_price)
-VALUES
+--- invoice_details ---
+INSERT INTO invoice_details (invoice_id, repair_id, quantity, part_price) 
+VALUES 
 (1, 1, 1, 100.00),
 (2, 2, 2, 200.00),
 (3, 3, 3, 300.00),
