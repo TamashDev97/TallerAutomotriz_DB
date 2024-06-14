@@ -261,48 +261,64 @@ ORDER BY
 
 --- Subqueries ---
 
--- 1. Get the client who has spent the most on repairs during the last year
+-- Get the client who has spent the most on repairs during the last year
 SELECT
     c.client_id,
     c.name,
     c.last_name,
-    (SELECT SUM(r.repair_cost)
-     FROM repairs AS r
-     WHERE r.client_id = c.client_id AND r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)) AS TotalSpent
+    SUM(r.repair_cost) AS TotalSpent
 FROM
     clients AS c
+JOIN
+    repairs AS r ON c.client_id = r.client_id
+WHERE
+    r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+GROUP BY
+    c.client_id,
+    c.name,
+    c.last_name
 ORDER BY
     TotalSpent DESC
 LIMIT 1;
 
--- 2. Get the most used part in repairs during the last month
+-- Get the most used part in repairs during the last month
 SELECT
     p.part_id,
     p.part_name,
-    (SELECT COUNT(rp.part_id)
-     FROM repair_parts AS rp
-     JOIN repairs AS r ON rp.repair_id = r.repair_id
-     WHERE rp.part_id = p.part_id AND r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AS Count
+    COUNT(rp.part_id) AS Count
 FROM
     parts AS p
+JOIN
+    repair_parts AS rp ON p.part_id = rp.part_id
+JOIN
+    repairs AS r ON rp.repair_id = r.repair_id
+WHERE
+    r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+GROUP BY
+    p.part_id,
+    p.part_name
 ORDER BY
     Count DESC
 LIMIT 1;
 
--- 3. Get the suppliers who supply the most expensive parts
+-- Get the suppliers who supply the most expensive parts
 SELECT
     s.supplier_id,
     s.supplier_name,
-    (SELECT MAX(p.part_cost)
-     FROM parts AS p
-     JOIN supplier_parts AS sp ON p.part_id = sp.part_id
-     WHERE sp.supplier_id = s.supplier_id) AS MaxPartCost
+    MAX(p.part_cost) AS MaxPartCost
 FROM
     suppliers AS s
+JOIN
+    supplier_parts AS sp ON s.supplier_id = sp.supplier_id
+JOIN
+    parts AS p ON sp.part_id = p.part_id
+GROUP BY
+    s.supplier_id,
+    s.supplier_name
 ORDER BY
     MaxPartCost DESC;
 
--- 4. List repairs that did not use specific parts during the last year
+-- List repairs that did not use specific parts during the last year
 SELECT
     r.repair_id,
     r.vehicle_id,
@@ -310,24 +326,21 @@ SELECT
     r.repair_cost
 FROM
     repairs AS r
+LEFT JOIN
+    repair_parts AS rp ON r.repair_id = rp.repair_id
 WHERE
-    r.repair_id NOT IN (SELECT rp.repair_id
-                        FROM repair_parts AS rp
-                        WHERE rp.repair_id = r.repair_id) AND
+    rp.part_id IS NULL AND
     r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
 
--- 5. Get parts that are in inventory below 10% of the initial stock
+-- Get parts that are in inventory below 10% of the initial stock
 SELECT
     p.part_id,
     p.part_name,
-    (SELECT i.quantity
-    FROM inventories AS i
-     WHERE i.part_id = p.part_id) AS Quantity,
+    i.quantity,
     p.initial_stock
 FROM
     parts AS p
+JOIN
+    inventories AS i ON p.part_id = i.part_id
 WHERE
-    (SELECT i.quantity
-     FROM inventories AS i
-     WHERE i.part_id = p.part_id) <= p.initial_stock * 0.1;
-
+    i.quantity <= p.initial_stock * 0.1;
