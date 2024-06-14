@@ -174,7 +174,8 @@ HAVING
 ORDER BY
     Count DESC;
 
--- Consult 14: Get vehicles with no repairsSELECT
+-- Consult 14: Get vehicles with no repairs
+SELECT
     v.vehicle_id,
     v.plate_number,
     v.brand,
