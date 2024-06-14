@@ -262,7 +262,6 @@ ORDER BY
 --- Subqueries ---
 
 -- 1. Get the client who has spent the most on repairs during the last year
-CREATE VIEW client_spending AS
 SELECT
     c.client_id,
     c.name,
