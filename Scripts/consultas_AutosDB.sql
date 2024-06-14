@@ -262,6 +262,7 @@ ORDER BY
 --- Subqueries ---
 
 -- 1. Get the client who has spent the most on repairs during the last year
+CREATE VIEW client_spending AS
 SELECT
     c.client_id,
     c.name,
@@ -282,6 +283,7 @@ ORDER BY
 LIMIT 1;
 
 -- 2. Get the most used part in repairs during the last month
+CREATE VIEW part_usage AS
 SELECT
     p.part_id,
     p.part_name,
@@ -302,6 +304,7 @@ ORDER BY
 LIMIT 1;
 
 -- 3. Get the suppliers who supply the most expensive parts
+CREATE VIEW expensive_parts AS
 SELECT
     s.supplier_id,
     s.supplier_name,
@@ -318,6 +321,7 @@ ORDER BY
     p.part_cost DESC;
 
 -- 4. List repairs that did not use specific parts during the last year
+CREATE VIEW no_part_repairs AS
 SELECT
     r.repair_id,
     r.vehicle_id,
@@ -332,6 +336,7 @@ WHERE
     r.repair_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
 
 -- 5. Get parts that are in inventory below 10% of the initial stock
+CREATE VIEW low_stock_parts AS
 SELECT
     p.part_id,
     p.part_name,
@@ -343,3 +348,4 @@ JOIN
     inventories AS i ON p.part_id = i.part_id
 WHERE
     i.quantity <= p.initial_stock * 0.1;
+
